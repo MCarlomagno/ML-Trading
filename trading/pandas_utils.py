@@ -5,7 +5,8 @@ def test_run():
 	'''
 	Test run function
 	'''
-	create_dataframe()
+	df = create_dataframe()
+	plot_data(normalize_data(df))
 
 
 def plot_data():
@@ -41,7 +42,30 @@ def get_dates_range():
 
 def get_spy_dataframe():
 	df = pd.read_csv("data/SPY.csv",index_col= 'Date', parse_dates=True, usecols=['Date', 'Adj Close'], na_values=['nan'])
+	plot_data(df)
 	return df
+
+def slicing():
+	df = create_dataframe()
+	sliced_rows = df['2019-08-01':'2019-08-05']
+	print("sliced_rows")
+	print(sliced_rows)
+
+	sliced_columns = df[['SPY','GOOG']]
+	print("Sliced columns")
+	print(sliced_columns)
+
+	slided_rows_and_columns = df.loc['2019-08-01':'2019-08-05', ['SPY','GOOG']]
+	print(slided_rows_and_columns)
+
+def plot_data(df, title="Stock Prices"):
+	ax = df.plot(title = title)
+	ax.set_xlabel("Date")
+	ax.set_ylabel("Price")
+	plt.show()
+
+def normalize_data(df):
+	return df/df.loc[df.index[0],:]
 
 def create_dataframe():
 	#Creating empty data frame with custom date range
@@ -56,7 +80,7 @@ def create_dataframe():
 
 	# drops the NaN values
 	df.dropna(how='any',inplace=True)
-	print(df)
+	return df
 
 
 if __name__ == "__main__":
