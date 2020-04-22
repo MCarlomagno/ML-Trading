@@ -42,7 +42,6 @@ def get_dates_range():
 
 def get_spy_dataframe():
 	df = pd.read_csv("data/SPY.csv",index_col= 'Date', parse_dates=True, usecols=['Date', 'Adj Close'], na_values=['nan'])
-	plot_data(df)
 	return df
 
 def slicing():
