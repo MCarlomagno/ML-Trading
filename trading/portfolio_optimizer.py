@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import scipy.optimize as spo
 import numpy as np
-
+import math
 
 def get_data_frame(start_date, end_date, symbols):
 	'''Loads a custom data frame with a given date range and symbols
@@ -68,20 +68,20 @@ def plot_portfolio_value(df, spy, title="Portfolio value"):
 	ax.legend(loc = "upper left")
 	plt.show()
 
-def compute_sharpe_ratio(df, initial_inverstment, allocs):
+def compute_sharpe_ratio(df, initial_inverstment, allocs, samples = 256):
 	daily_return,_ = get_daily_return_and_cum_return(df, initial_inverstment, allocs)
 
 	# we assume that if you dont put money in the market you gain 0 (array of 0 with the same number of rows)
 	risk_free_rate_of_return = np.zeros(daily_return.shape[0])
 
-	return ((daily_return - risk_free_rate_of_return).mean()/ daily_return.std())
+	return (math.sqrt(samples) * ((daily_return - risk_free_rate_of_return).mean()/ daily_return.std()))
 
 def fun(coef, df, initial_inverstment):
 
 	sharpe_ratio = compute_sharpe_ratio(df, initial_inverstment, coef)
 
 	# we try to minimize the function so miltiply the sharpe ratio by -1
-	return sharpe_ratio* -1
+	return (sharpe_ratio * -1)
 
 def fit_coefs(df, fun, initial_guess, initial_inverstment):
 	# Call optimizer to minimize the function error
@@ -89,7 +89,7 @@ def fit_coefs(df, fun, initial_guess, initial_inverstment):
 	return result.x
 
 
-def main():
+def test_run():
 	start_date = '2019-06-01'
 	end_date = '2020-03-01'
 	symbols = ['JCP', 'GOOG', 'GLD', 'IBM']
@@ -99,21 +99,25 @@ def main():
 	norm_df_spy = normalize_data(df_spy)
 
 	orig_allocs = [0.25, 0.25, 0.25, 0.25]
+	reverse_optim_allocs = [0.0, 0.6, 0.4, 0.0]
 	initial_inverstment = 1000000
-	orig_portfolio_value = get_portfolio_value(norm_df, perf_allocs, initial_inverstment)
-	spy_portfolio_value = get_portfolio_value(norm_df_spy, [1.0], initial_inverstment)
-	plot_portfolio_value(orig_portfolio_value, spy_portfolio_value)
-
-
 	coefs = fit_coefs(df, fun, orig_allocs, initial_inverstment)
-	print("Fitted coeficients: ")
-	print(coefs)
-	print("Sum Fitted coeficients: ")
-	print(np.sum(coefs))
 
+	print("sharpe ratio function for optimal: ")
+	value1 = compute_sharpe_ratio(norm_df, initial_inverstment, coefs)
+	print(value1)
+
+	print("sharpe ratio function for reverse optimal: ")
+	value2 = compute_sharpe_ratio(norm_df, initial_inverstment, reverse_optim_allocs)
+	print(value2)
+
+	reverse_portfolio_value = get_portfolio_value(norm_df, reverse_optim_allocs, initial_inverstment)
+	optim_portfolio_value = get_portfolio_value(norm_df, coefs, initial_inverstment)
+	spy_portfolio_value = get_portfolio_value(norm_df_spy, [1.0], initial_inverstment)
+	plot_portfolio_value(optim_portfolio_value, reverse_portfolio_value)
 
 
 
 
 if __name__ == '__main__':
-	main()
+	test_run()
