@@ -1,3 +1,3 @@
-# machine_learning
+# ML Trading
 
 Cool machine learning stuff.
